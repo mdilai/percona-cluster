@@ -44,9 +44,8 @@ wsrep_start_position=$(sed -n 's/.*Recovered\ position:\s*//p' ${tmpfile})
 # We will not start, as most likely Galera is not configured
 
 if test -z ${wsrep_start_position}
-  then echo "${LOG_MESSAGE} We found no wsrep position!"
-       echo "${LOG_MESSAGE} Most likely Galera is not configured, so we refuse to start"
-       exit 1
+   then exec $MYSQLD $OPT
+	exit 1
 fi
 
 # Start mysqld

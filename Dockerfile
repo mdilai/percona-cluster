@@ -1,18 +1,20 @@
 FROM ubuntu:14.04
-MAINTAINER Dr. Stefan Schimanski <stefan.schimanski@gmail.com>
+MAINTAINER Maksym Dilai <admin@dproject.org.ua>
 
 ENV DEBIAN_FRONTEND noninteractive
 
+# Upgrade
+RUN apt-get update && apt-get upgrade -y && apt-get dist-upgrade -y
+
 # setup repos
-RUN echo "deb http://archive.ubuntu.com/ubuntu trusty main universe" > /etc/apt/sources.list
-RUN apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xcbcb082a1bb943db
-RUN echo 'deb http://ftp.hosteurope.de/mirror/mariadb.org/repo/10.0/ubuntu trusty main' >> /etc/apt/sources.list
-RUN apt-get -y update
+RUN echo "deb http://repo.percona.com/apt trusty main" >> /etc/apt/sources.list.d/percona.list
+RUN echo "deb-src http://repo.percona.com/apt trusty main" >> /etc/apt/sources.list.d/percona.list
+RUN apt-key adv --keyserver keys.gnupg.net --recv-keys 1C4CBDCDCD2EFD2A
+RUN apt-get update
 
 # install packages
-RUN apt-get -y --no-install-recommends --no-install-suggests install host socat unzip ca-certificates wget
-RUN apt-get -y install mariadb-galera-server-10.0 galera-3 mariadb-client xtrabackup
-
+RUN apt-get install -y percona-xtradb-cluster-56 qpress xtrabackup
+RUN apt-get install -y python-software-properties host socat unzip ca-certificates wget curl netcat hostname --no-install-recommends --no-install-suggests
 # install galera-healthcheck
 RUN wget -O /bin/galera-healthcheck 'https://github.com/sttts/galera-healthcheck/releases/download/v20150303/galera-healthcheck_linux_amd64'
 RUN test "$(sha256sum /bin/galera-healthcheck | awk '{print $1;}')" = "86f60d9d82b1f9d2d474368ed7e81a0a361508031a292244847136b0ed2ee770"

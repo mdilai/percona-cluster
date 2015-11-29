@@ -9,6 +9,7 @@ CLUSTERCHECK_PASSWORD=$(echo "$XTRABACKUP_PASSWORD" | sha256sum | awk '{print $1
 QCOMM=""
 CLUSTER_NAME=${CLUSTER_NAME:-cluster}
 MYSQL_MODE_ARGS=""
+HOST=`hostname`
 
 case "$1" in
 	seed)
@@ -24,7 +25,7 @@ CREATE USER 'xtrabackup'@'localhost' IDENTIFIED BY '$XTRABACKUP_PASSWORD';
 GRANT RELOAD,LOCK TABLES,REPLICATION CLIENT ON *.* TO 'xtrabackup'@'localhost';
 CREATE USER 'clustercheck'@'localhost' IDENTIFIED BY '$CLUSTERCHECK_PASSWORD';
 GRANT PROCESS ON *.* TO 'clustercheck'@'localhost';
-GRANT ALL PRIVILEGES ON *.* TO 'root'@'%';
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;
 UPDATE mysql.user SET Password=PASSWORD('$MYSQL_ROOT_PASSWORD') WHERE User='root';
 FLUSH PRIVILEGES;
 EOF
@@ -78,8 +79,8 @@ trap shutdown TERM INT
 	--wsrep_cluster_name="$CLUSTER_NAME" \
 	--wsrep_cluster_address="gcomm://$QCOMM" \
 	--wsrep_sst_auth="xtrabackup:$XTRABACKUP_PASSWORD" \
-	--default-time-zone="+00:00" \
-	"$@" 2>&1 &
+	--default-time-zone="+00:00" --verbose \
+	--log-error=/var/lib/mysql/mysql.err "$@" 2>&1 &
 wait $!
 RC=$?
 
